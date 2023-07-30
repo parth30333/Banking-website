@@ -12,11 +12,11 @@ const tabsContent = document.querySelectorAll('.operations__content');
 const nav = document.querySelector('.nav');
 
 ///////////////////////////////////////
-// Modal window
+// Modal window-:
 
-// NOTE-: whenever we click on a link, the default behaviour of the "<a></a>"  is to move the page to the top, and open Account(btnsOpneModal) is <a>, that's why e.preventDefault() is used in openModal function..
-const openModal = function (e) {
-  e.preventDefault();
+// NOTE-: whenever we click on a link, the default behaviour of the "<a></a>"  is to move the page to the top, and open Account(btnsOpneModal) is <a>.
+const openModal = function (event) {
+  event.preventDefault();
   modal.classList.remove('hidden');
   overlay.classList.remove('hidden');
 };
@@ -37,8 +37,8 @@ document.addEventListener('keydown', function (e) {
   }
 });
 
-// Smooth Scrolling-:
-
+//////////////////////////
+// Button Scrolling-:
 btnScrollTo.addEventListener('click', function (e) {
   // const s1coords = section1.getBoundingClientRect();
   // console.log(s1coords);
@@ -70,14 +70,13 @@ btnScrollTo.addEventListener('click', function (e) {
           3-: document.documentElement.clientWidth/Height-: it returns the height and width of the viewport
  */
 
-///////////////////////////////
-// Page navigation-:
+// Page naviagtion-:
 
-// document.querySelectorAll('.nav__link').forEach(function (el) {
+// document.querySelectorAll('.nav__link').forEach(el => {
 //   el.addEventListener('click', function (e) {
-//     e.preventDefault(); // to avoid the scrolling and changing of url(url contains the address in href).
-
-//     const id = el.getAttribute('href');
+//     e.preventDefault();
+//     const id = this.getAttribute('href');  // reading the id of the element to which we want to scroll from href attribute, as href also has the id name.
+//     console.log(id);
 //     document.querySelector(id).scrollIntoView({ behavior: 'smooth' });
 //   });
 // });
@@ -95,6 +94,7 @@ document.querySelector('.nav__links').addEventListener('click', function (e) {
   // Matching Strategy-: to determine where that click event happened
   if (e.target.classList.contains('nav__link')) {
     const id = e.target.getAttribute('href');
+    console.log(id);
     document.querySelector(id).scrollIntoView({ behavior: 'smooth' });
   }
 });
@@ -143,15 +143,14 @@ const handleHover = function (e) {
 nav.addEventListener('mouseover', handleHover.bind(0.5)); // here we have set the this keyword to the opacity value wanted. since, handleHover is now the callback function for event Listener and it will event object(e) inside it, so we don't pass a event argument here as we have already passed the event in the handleHover's definition.
 nav.addEventListener('mouseout', handleHover.bind(1)); // Generally this keyWord of a event listener's callback function is the e.currentTarget, but here we have set the "this keyword manually" so, e.currentTarget reamins same but this keyword changes.
 
-// // Sticky navigation-:
+// Sticky Navigation-:
 // const initialCoords = section1.getBoundingClientRect();
 
 // window.addEventListener('scroll', function () {
-//   if (window.scrollY >= initialCoords.top) nav.classList.add('sticky');
+//   if (window.pageYOffset > initialCoords.top) nav.classList.add('sticky');
 //   else nav.classList.remove('sticky');
 // });
 
-// Intersection API-:
 // Sticky navigation using Intersection Observer API-: when we were using event listener with event "scroll", the code was executed every time we scroll that will definitely decrease the performance, that' why we have used this API.
 const navHeight = nav.getBoundingClientRect().height;
 // height of the navbar remains constant.
@@ -168,7 +167,7 @@ const headerObserver = new IntersectionObserver(stickyNav, {
   root: null,
   threshold: 0,
   rootMargin: `-${navHeight}px`,
-}); // this constructor will accepet a callback and execute that callback whenever the threshold is crossed by the target(header) and returns an object.
+}); // this constructor will accepet a callback and execute that callback "whenever the threshold is crossed by the target(header)" and returns an object.
 headerObserver.observe(header);
 
 /* 1-: Threshold is the percentage visisbility of the target element.
@@ -177,7 +176,7 @@ headerObserver.observe(header);
    4-:(v.v.v.imp.)-: The targets that line up in the entries array are those elements whose intersection ratio has gone greater than (or equal to) a threshold value or whose intersection ratio has gone lesser than a threshold value. 
    5-: (v.v.v.imp.)-: We see an entry even when interSection ratio < threshold, because entries array is returned by observer.observe() method as a argument to the callback even before the target object in entries array has a intersection ratio <= threshold. The important thing is-: we want callback to perform certain action after target reaches threshold(in this case, but generally depends on the req. ,wether we want to perform a action earlier or after target reaches threshold), so use property isIntersecting in entry, it gets set to true when target reaches the threshold.   
    6-: rootMargin is the distance between the threshold in pixels. 
-   7-: new IntersectionObserver() constructor's returns a object so, we have methods on that object and observe() is used beacuse it returns an entries array which is req. in callback.
+   7-: new IntersectionObserver() constructor's returns a object. so, we have methods on that object and observe() is used beacuse it returns an entries array which is req. in callback.
    NOTE-: if you want to know more about IntersectionObserver API-: https://www.codeguage.com/courses/advanced-js/intersection-observer-entries#:~:text=By%20far%20the%20most%20useful,know%20the%20whole%20observer's%20API.*/
 
 // Reveal Sections-:
@@ -203,44 +202,35 @@ sections.forEach(section => {
   sectionObserver.observe(section);
 }); // we are actually observing multiple targets
 
-// Lazy loading images-:
-
 // (v.v.imp.) NOTE-: when it comes to website's performance images is the major factor as they are bigger in size, so we can create a feature lazy loading images using Intersection Observer API.
 // we have first first set the link of image of low quality in the "src" so, that our page gets loaded faster and than replacing "src" link with data-src link which is of high quality
-const lazyImages = document.querySelectorAll('img[data-src]');
 
-const lazyLoad = function (entries, observer) {
+// Lazy Loading Images-:
+const images = document.querySelectorAll('img[data-src]');
+
+const revealImg = function (entries, observer) {
   const [entry] = entries;
-  // console.log(entry.target);
 
   if (!entry.isIntersecting) return;
 
-  entry.target.src = entry.target.dataset.src;
+  // Replace src with data-src
+  entry.target.src = entry.target.dataset.src; // dataset is used to grab a data attribute in HTML.
 
   entry.target.addEventListener('load', function () {
     entry.target.classList.remove('lazy-img');
   });
-
   observer.unobserve(entry.target);
 };
+// (v.v.v.imp) NOTE-: The reason behind using event listener instead of removing the class just after replacing src with data-src is-: when the src gets replaced with data-src JS loads the new image and after loading it JS emits a "load event". Since, the image in data-src is of high resolution so it might take some time to get loaded when internet is slow, in that scenario removing lazy-img class will expose the low quality image. So, it is better to remove the remove the lazy-img class(blur effect on image) when image is fullly loaded.
+// NOTE-:  You can check how a element or your whole website behave according to the user's network-: inspect-network-online- than select a network on which you want to check your website.
 
-const imgObserver = new IntersectionObserver(lazyLoad, {
+const imageObserver = new IntersectionObserver(revealImg, {
   root: null,
   threshold: 0,
-  rootMargin: '200px',
+  rootMargin: '160px', // we have added the rootMargin, cause when we removed the section--hidden class it, translates down the section by 8rem.
 });
 
-lazyImages.forEach(img => imgObserver.observe(img));
-
-/* (v.v.imp.) NOTE-:  whenever we scroll our website page and than reload it, some of the functions in the code doesn't work properly. ex=> if you reload the page after 
-                      scrolling to the lazy image section than sometimes some of the lazy images  doesn't gets loaded. To resolve this issue we can move the page to 
-                      the top after reload, but Question is why this is happening in my website only not in other website, other website's functions gets reloaded fine
-                       even if we reload after some scrolling ? 
-
-                       To move the page to the top-: window.onbeforeunload = function () {
-                                                          window.scrollTo(0, 0);
-                                                        }
-*/
+images.forEach(img => imageObserver.observe(img));
 
 // Slider component-:
 (function () {
@@ -264,7 +254,6 @@ lazyImages.forEach(img => imgObserver.observe(img));
         'beforeend',
         `<button class="dots__dot" data-slide="${i}"></button>`
       );
-      // when we were using 'afterbegin' than dot elements were getting placed above the previous one that's why we console.log(dotContainer) were showing dots having data-slide attribute in order 3 2 1 0
     });
   };
 
@@ -326,19 +315,19 @@ lazyImages.forEach(img => imgObserver.observe(img));
   // using Event delegation-:
   dotContainer.addEventListener('click', function (e) {
     if (e.target.classList.contains('dots__dot')) {
-      const { slide } = e.target.dataset; // we can do it by simply declaring a variable, but we have used Object destructuring beacuse data-slide is a object. check-: console.log(typeof e.target.dataset);
+      const { slide } = e.target.dataset; // since we know in object destructuring, the key is accessed by the name(not by the order like in array destructuring) in variable({key}) and attributes are also objects in DOM.
       goToSlide(slide);
       activeDot(slide);
     }
   });
 })(); //  wrapped the sliding component's code into an IIFE to avoid polluting the global space.
 
-// (v.v.v.imp) NOTE-: Look how beautifully data-slide attribute is used in dot elements, we are accessing the currSlide(while calling goToSlide function in dotContainer event listener) using data-slide attribute.
+// NOTE-:  check out new updates in chrome 88 for web development.
 
-///////////////////////
-//////////////////////
+///////////////////////////
+//////////////////////////
+/////////////////////////
 
-/////// LECTURES //////////
 // // Selecting elements-:
 
 // // (v.v.v.imp.) NOTE-:  watch vid.182 once to know about DOM and level of inheritance and in that video Element is hypothetical which further have HTML element(<html> tag which has all the html code inside it), than further HTML Element has html tags(button,  div, input, img, etc.)
@@ -348,10 +337,6 @@ lazyImages.forEach(img => imgObserver.observe(img));
 // console.log(document.head);
 
 // const header = document.querySelector('.header');
-
-/*(v.imp) NOTE-: 1-:  NodeLists behave differently depending on how you access them. ex=>  if you access nodeLists using querySelectorAll() it will return a static
-                      nodeList while using .childNodes nodeList returned is live.
-                  2-: see difference B/W nodeLists and HTMLCollections -: https://www.stefanjudis.com/blog/accessing-the-dom-is-not-equal-accessing-the-dom/    */
 
 // // NOTE-: a Node is any DOM object(ex-: comment node, text node, document node, etc.), but an element is one specific type of node.
 // /* NOTE-: Difference B/W a nodeList and HTMLCollection is-: 1-: a nodeList can contain any node type. HTMLCollection is supposed to contain only element nodes(an element is one specific type of node).
@@ -448,46 +433,82 @@ lazyImages.forEach(img => imgObserver.observe(img));
 // // Don't use-:
 // logo.className = 'parth'; // this will override the existing classes, it also forces us to put only one class on any element.
 
-// Event Propagation in practice-:
+/* NOTE-: 1-: An event is a signal generated a by a DOM Node, and it doesn't matter wether we attached a handler to that event or not that event will occur(if a DOM Node has generated it).\
+          2-: "For every event in DOM there is a "onevent_name" property", which is similar to addEventListener, i.e. used to add a handler to the event. ex-:  onclick, onkeypress, etc. 
+          3-: "mouseneter" event is fired when the mouse goes(hover) a certain element. */
+
+// const h1 = document.querySelector('h1');
+// const alertH1 = function (e) {
+//   alert('this is a mouseenter event');
+// };
+
+// h1.addEventListener('mouseenter', alertH1);
+
+// setTimeout(() => h1.removeEventListener('mouseenter', alertH1), 3000); // event handler will work once, after that working of handler function depends upon the time set for timeOut.
+// // h1.onmouseenter = function (e) {
+// //   alert('this is a mouseenter event');
+// // };
+
+/* (v.v.imp.) NOTE-: The advantages of using addEventListener over onevent_name property are-: 
+                    1-: we can use as many addEventListener for a element, if we use multiple onevent_name property on a single element than the most recent one will 
+                        override the previous one.  
+                    2-: we can even remove the handler function from addEventListener if we want to-: just export the handler function as a named function than use it 
+                        inside addEventListener      */
+
+// (v.v.v.imp.) NOTE-: check vid-: 187 for event propagation(capturing phase => Target phase => bubbling phase),
 
 // const randomInt = (min, max) =>
-//   Math.floor(Math.random() * (max - min) + 1) + min;
+//   Math.floor(Math.random() * (max - min + 1) + min);
+// // to generate a number in B/W min. and max. , if don't understand the concept of this function, go to Numbers,dates,Intl and timers folder.
+
+// // NOTE-: Stupid thing done here-: i have used {} braces in arrow functions and and not used return statement, as JS always expects a return statement after {} braces in a arrow function.
+
+// // Event Propagation in practice-:
 // const randomColor = () =>
 //   `rgb(${randomInt(0, 255)},${randomInt(0, 255)},${randomInt(0, 255)})`;
 
-// document.querySelector('.nav__link').addEventListener('click', e => {
-//   // as we are using arrow function here we cannot use this.style.backgroundColor
-//   e.currentTarget.style.backgroundColor = randomColor();
+// document.querySelector('.nav__link').addEventListener('click', function (e) {
+//   this.style.backgroundColor = randomColor();
+
 //   console.log('LINK', e.target, e.currentTarget);
+//   console.log(e.currentTarget === this); // e.currentTarget = this keyword
+
+//   // // stop event propagation-:
+//   // e.stopPropagation();
 // });
 
-// document.querySelector('.nav__links').addEventListener('click', e => {
-//   e.currentTarget.style.backgroundColor = randomColor();
+// document.querySelector('.nav__links').addEventListener('click', function (e) {
+//   this.style.backgroundColor = randomColor();
+
 //   console.log('CONTAINER', e.target, e.currentTarget);
 // });
 
 // document.querySelector('.nav').addEventListener(
 //   'click',
-//   e => {
-//     e.currentTarget.style.backgroundColor = randomColor();
+//   function (e) {
+//     this.style.backgroundColor = randomColor();
+
 //     console.log('NAV', e.target, e.currentTarget);
-//   },
-//   true
+//   }
+//   // true // now this event gets performed before the target element if ".nav" is the parent of that target as we have passed the 3rd parameter = true, for result check the console, observing this on UI would be impossible as all these Bubbling and creation phase happens so fast.
 // );
 
-/* (v.v.imp) NOTE-: 1-: most of the events have a capturing, target and bubbling phase, but some events only has a target phase.
-                    2-: we can attach or call multiple event listeners on a single target event. watch example in the link below.
-                    3-: capturing = when looking for target element from ancestors till the target, Bubbling  = going back from target to the top passing all the 
-                        ancestors. So, when we define 3rd parameter in addEventListener() = true than event is attched to the target in capturing phase and vice-versa
-                        for bubbling phase. watch the example in event propagation in practice above.   
-                    4-: Look at only the example of capturing and bubbling phase.
-                    5-: "this" keyword in a addEventListener() === event.currentTarget. 
-                    6-: e.target = element(or node in DOM) on which event(ex=> click) is triggered and e.currentTarget = element(or node in DOM) on which 
-                        addEventListener() is attached.
-                      */
+/* (v.v.imp.) NOTE-: 1-: capturing phase-: we know that a event is a signal generated by an element(DOM Node) and that element is the target, but the event is actually
+                         not generated at the target, the signal(event) was first generated at root element(Node)(<html>) and from there that event goes down to that 
+                         target element through all the parents of that target element or we can say the event goes down to target element through all the childs of root
+                         elemen(<html>), all this is called capturing phase .
+                      2-: target phase-: when the event reaches the target element and gets fires at that target element.
+                      3-: Bubbling phase-: the event goes up back to the root element through all the parents of that target element, but it is not similar to capturing
+                          phase(where event was just moving through DOM Nodes), in this pahse event also gets fired on all parent elements while going up to the root 
+                          element, that is what happening up in the code-: when we click on features button, bgColor of all its parents also gets changed(we can check it with clicking on .nav__links area, than event on features won't get fired, since it is the child element), but to 
+                          visualize this effect we have to use the same handler function on all eventListeners.  
+                      4-:  Also while bubbling event listener gets attached to every parent of target element, and e.target is the element on which event was
+                           initiated(ex-: e.target for click(event) on features button will be the feature button element) and e.currenttarget returns all the elements 
+                           to which that event was attached too.   
+                      5-: The Default behaviour of addEventListener() is that it gets attached ot parents of target element in Bubbling phase not in capturing phase,
+                          but we can attach addEventListener() to parent elements of target by passing a 3rd parameter to addEventListener() = true */
 
-// DOM  Traversing-: mostly used to access a element in DOM based on (or using) another element.
-
+// // DOM Traversing-:
 // const h1 = document.querySelector('h1');
 
 // // Going Downwards-: child
@@ -535,14 +556,12 @@ window.addEventListener('load', function (e) {
   console.log('page fully loaded! ', e);
 });
 
-// prompt(
-//   'find the reason why some of the lazy images were not loading properly after i reload the page after scolling down to the lazy image section'
-// );
-
 // whenever the user is about to leave the page(ex-:when someone hits close tab button on chrome, hits reload button) beforeunload event is fired.
-// window.addEventListener('beforeunload', function (e) {
-//   e.preventDefault(); // not necessary in chrome, but it is req. in some browsers.
-//   console.log(e);
-//   e.returnValue = ''; // this step is necessary(no logic behind it), to show a pop up whenever the user is hits close tab button.
-//   // this feature can be used when a user tries to leave the site in B/W filling a form and in many more things.
-// });
+window.addEventListener('beforeunload', function (e) {
+  e.preventDefault(); // not necessary in chrome, but it is req. in some browsers.
+  console.log(e);
+  e.returnValue = ''; // this step is necessary(no logic behind it), to show a pop up whenever the user is hits close tab button.
+  // this feature can be used when a user tries to leave the site in B/W filling a form and in many more things.
+});
+
+console.log('parth');
